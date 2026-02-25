@@ -125,44 +125,51 @@ document.getElementById("bar").style.width=love+"%";
 }
 
 /* BALLOON GAME */
+/* BALLOON GAME */
+let balloonIntervals = [];
+let gameOver = false;
+
 function balloons(){
 let box=document.getElementById("box");
 box.innerHTML="<h3>Pop all 10 balloons 🎈</h3>";
 
 let popped=0;
-let escaped=false;
+gameOver=false;
+balloonIntervals=[];
 
 for(let i=0;i<10;i++){
+
 let b=document.createElement("div");
 b.className="balloon";
 b.innerText="🎈";
-b.style.left=Math.random()*300+"px";
+b.style.left=Math.random()*250+"px";
 b.style.top="350px";
 
 let speed=Math.random()*1.5+1;
 
 let move=setInterval(()=>{
+
+if(gameOver) return;
+
 b.style.top=(b.offsetTop-speed)+"px";
 
-if(b.offsetTop<0 && !b.clicked){
-clearInterval(move);
-escaped=true;
-failBalloons();
+if(b.offsetTop<0){
+endBalloonGame(false);
 }
 
 },20);
 
+balloonIntervals.push(move);
+
 b.onclick=()=>{
-if(b.clicked) return;
-b.clicked=true;
+if(gameOver) return;
+
 clearInterval(move);
 b.remove();
 popped++;
 
-if(popped>=10 && !escaped){
-love+=34;
-updateBar();
-successBalloons();
+if(popped>=10){
+endBalloonGame(true);
 }
 };
 
@@ -170,20 +177,29 @@ box.appendChild(b);
 }
 }
 
-function failBalloons(){
+function endBalloonGame(success){
+
+if(gameOver) return;
+gameOver=true;
+
+balloonIntervals.forEach(i=>clearInterval(i));
+balloonIntervals=[];
+
 let box=document.getElementById("box");
+
+if(success){
+love+=34;
+updateBar();
+box.innerHTML=`
+<h3>Impressive 😌</h3>
+<button class="primary" onclick="memoryGame()">Next</button>
+`;
+}else{
 box.innerHTML=`
 <h3>Oops! A balloon escaped 😏</h3>
 <button class="primary" onclick="balloons()">Retry</button>
 `;
 }
-
-function successBalloons(){
-let box=document.getElementById("box");
-box.innerHTML=`
-<h3>Impressive 😌</h3>
-<button class="primary" onclick="memoryGame()">Next</button>
-`;
 }
 
 /* MEMORY GAME */
