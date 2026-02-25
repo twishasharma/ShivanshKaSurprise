@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For You 💘</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial, sans-serif;
+background:linear-gradient(135deg,#ff9a9e,#fad0c4);
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+text-align:center;
+overflow:hidden;
+}
+
+.container{
+background:white;
+padding:25px;
+border-radius:20px;
+width:90%;
+max-width:400px;
+position:relative;
+overflow:hidden;
+min-height:400px;
+}
+
+button{
+padding:12px 18px;
+margin:10px;
+border:none;
+border-radius:25px;
+font-size:15px;
+cursor:pointer;
+}
+
+.primary{background:#ff4b91;color:white;}
+.secondary{background:#888;color:white;}
+
+.progress{
+height:15px;
+background:#ddd;
+border-radius:10px;
+overflow:hidden;
+margin-top:15px;
+}
+
+.bar{
+height:100%;
+width:0%;
+background:#ff4b91;
+transition:0.3s;
+}
+
+.balloon{
+position:absolute;
+font-size:40px;
+cursor:pointer;
+}
+
+.card{
+display:inline-block;
+width:60px;
+height:60px;
+background:#ff4b91;
+margin:5px;
+line-height:60px;
+font-size:30px;
+border-radius:10px;
+color:white;
+cursor:pointer;
+}
+
+canvas{
+background:#ffe6f0;
+border-radius:10px;
+}
+</style>
+</head>
+<body>
+
+<div class="container" id="box"></div>
+
+<script>
+let love=0;
+
+function start(){
+document.getElementById("box").innerHTML=`
+<h3>I love you.</h3>
+<p>These 9 months have genuinely been the best of my life.</p>
+<button class="primary" onclick="next1()">Continue</button>
+`;
+}
+start();
+
+function next1(){
+document.getElementById("box").innerHTML=`
+<p>I know you once said you'd love to get proposed to...</p>
+<button class="primary" onclick="proposal()">So...</button>
+`;
+}
+
+function proposal(){
+document.getElementById("box").innerHTML=`
+<h2>Will you be my boyfriend? 🥹</h2>
+<button class="primary" onclick="yesPath()">Yes</button>
+<button class="secondary" onclick="yesPath()">No</button>
+`;
+}
+
+function yesPath(){
+document.getElementById("box").innerHTML=`
+<h2>JK Earn your YES I SPENT A LOT OF TIME ON THIS MF😌</h2>
+
+<div class="progress"><div class="bar" id="bar"></div></div>
+<button class="primary" onclick="balloons()">Start Game</button>
+`;
+}
+
+function updateBar(){
+document.getElementById("bar").style.width=love+"%";
+}
+
+/* BALLOON GAME */
+function balloons(){
+let box=document.getElementById("box");
+box.innerHTML="<h3>Pop all 10 balloons 🎈</h3>";
+
+let popped=0;
+let escaped=false;
+
+for(let i=0;i<10;i++){
+let b=document.createElement("div");
+b.className="balloon";
+b.innerText="🎈";
+b.style.left=Math.random()*300+"px";
+b.style.top="350px";
+
+let speed=Math.random()*1.5+1;
+
+let move=setInterval(()=>{
+b.style.top=(b.offsetTop-speed)+"px";
+
+if(b.offsetTop<0 && !b.clicked){
+clearInterval(move);
+escaped=true;
+failBalloons();
+}
+
+},20);
+
+b.onclick=()=>{
+if(b.clicked) return;
+b.clicked=true;
+clearInterval(move);
+b.remove();
+popped++;
+
+if(popped>=10 && !escaped){
+love+=34;
+updateBar();
+successBalloons();
+}
+};
+
+box.appendChild(b);
+}
+}
+
+function failBalloons(){
+let box=document.getElementById("box");
+box.innerHTML=`
+<h3>Oops! A balloon escaped 😏</h3>
+<button class="primary" onclick="balloons()">Retry</button>
+`;
+}
+
+function successBalloons(){
+let box=document.getElementById("box");
+box.innerHTML=`
+<h3>Impressive 😌</h3>
+<button class="primary" onclick="memoryGame()">Next</button>
+`;
+}
+
+/* MEMORY GAME */
+function memoryGame(){
+let emojis=["💖","💖","💕","💕","😍","😍"];
+emojis.sort(()=>0.5-Math.random());
+
+let box=document.getElementById("box");
+box.innerHTML="<h3>Match all pairs 💞</h3>";
+
+let first=null,second=null,matches=0,lock=false;
+
+emojis.forEach(e=>{
+let card=document.createElement("div");
+card.className="card";
+
+card.onclick=()=>{
+if(lock || card.innerText) return;
+card.innerText=e;
+
+if(!first){
+first=card;
+}else{
+second=card;
+lock=true;
+
+if(first.innerText===second.innerText){
+matches++;
+first=null;
+second=null;
+lock=false;
+
+if(matches===3){
+love+=33;
+updateBar();
+box.innerHTML=`
+<h3>Smart boy 😌</h3>
+<button class="primary" onclick="flappy()">Next</button>
+`;
+}
+
+}else{
+setTimeout(()=>{
+first.innerText="";
+second.innerText="";
+first=null;
+second=null;
+lock=false;
+},600);
+}
+}
+};
+
+box.appendChild(card);
+});
+}
+
+/* FLAPPY LOVE */
+function flappy(){
+let box=document.getElementById("box");
+box.innerHTML="<h3>Flappy Love 💘 (Score 5)</h3><canvas id='game' width='300' height='400'></canvas>";
+
+let canvas=document.getElementById("game");
+let ctx=canvas.getContext("2d");
+
+let y=200,gravity=0.6,velocity=0;
+let pipes=[];
+let score=0;
+
+function draw(){
+ctx.clearRect(0,0,300,400);
+velocity+=gravity;
+y+=velocity;
+ctx.fillText("💘",140,y);
+
+if(y>400||y<0){
+failFlappy();
+return;
+}
+
+if(Math.random()<0.02){
+let top=Math.random()*200;
+pipes.push({x:300,top:top});
+}
+
+pipes.forEach(p=>{
+p.x-=2;
+ctx.fillRect(p.x,0,30,p.top);
+ctx.fillRect(p.x,p.top+120,30,400);
+
+if(p.x===140) score++;
+
+if(p.x<150&&p.x>120&&(y<p.top||y>p.top+120)){
+failFlappy();
+}
+});
+
+ctx.fillText("Score:"+score,10,20);
+
+if(score>=5){
+love+=33;
+updateBar();
+win();
+return;
+}
+
+requestAnimationFrame(draw);
+}
+
+canvas.addEventListener("click",()=>velocity=-8);
+draw();
+}
+
+function failFlappy(){
+let box=document.getElementById("box");
+box.innerHTML=`
+<h3>You crashed 😏</h3>
+<button class="primary" onclick="flappy()">Retry</button>
+`;
+}
+
+function win(){
+let box=document.getElementById("box");
+box.innerHTML=`
+<h2>You earned it 💕</h2>
+<button class="primary" onclick="finalYes()">YES 💘</button>
+`;
+}
+
+function finalYes(){
+document.getElementById("box").innerHTML="<h1>I love you forever ❤️</h1>";
+}
+</script>
+
+</body>
+</html>
